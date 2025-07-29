@@ -22,7 +22,7 @@ const userSchema = new Schema<IUser>(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, "Please provide a name "],
     },
     email: {
       type: String,
