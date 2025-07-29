@@ -11,7 +11,7 @@ export enum IsActive {
   BLOCKED = "BLOCKED",
 }
 
-export interface IsAuthProvider {
+export interface IAuthProvider {
   provider: string;
   providerId: string;
 }
@@ -27,7 +27,7 @@ export interface IUser {
   isActive?: IsActive;
   isVerified?: string;
   role?: Role;
-  auths: IsAuthProvider[];
+  auths: IAuthProvider[];
   bookings: Types.ObjectId[];
   guides: Types.ObjectId[];
 }
