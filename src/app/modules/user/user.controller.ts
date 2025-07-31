@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { NextFunction, Request, Response } from "express";
 
 import httpstatus, { StatusCodes } from "http-status-codes";
@@ -9,8 +9,8 @@ import sendResponse from "../../utils/sendResponse";
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { name, email } = req.body;
-    const user = await userService.createUser({ name, email });
+    const { name, email,...rest } = req.body;
+    const user = await userService.createUser({ name, email,...rest });
     res.status(StatusCodes.CREATED).json({
       success: true,
       message: "User create success",
@@ -25,7 +25,7 @@ const getAllUser = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "User created successfully",
+      message: "User fetch successfully",
       data: users.data,
       meta: { total: users.meta },
     });
