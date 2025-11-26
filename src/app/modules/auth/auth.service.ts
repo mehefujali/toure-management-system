@@ -3,8 +3,10 @@ import { User } from "../user/user.model";
 import { IUser } from "../user/usre.interface";
 import httpstatus from "http-status-codes";
 import bcryptjs from "bcryptjs";
-import { genarateToken } from "../../utils/jwt";
-import { envVars } from "../../config/env";
+import {
+  createNewAccessTokenWithRefreshToken,
+  createUserTokens,
+} from "../../utils/userTokens";
 
 const credentialLogin = async (paylod: Partial<IUser>) => {
   const { email, password } = paylod;
@@ -23,23 +25,21 @@ const credentialLogin = async (paylod: Partial<IUser>) => {
   if (!isPasswrdMatch) {
     throw new AppErr(httpstatus.UNAUTHORIZED, "Invalid Password");
   }
-  const jwtPayload = {
-    userId: existingUser._id,
-    email: existingUser.email,
-    role: existingUser.role,
-  };
-
-  const accessToken = genarateToken(
-    jwtPayload,
-    envVars.JWT_ACCESS_SECRET,
-    envVars.JWT_ACCESS_EXP
-  );
-
+  const { accessToken, refreshToken } = createUserTokens(existingUser);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password: pass, ...rest } = existingUser.toObject();
   return {
     accessToken,
+    refreshToken,
+    user: rest,
   };
+};
+const getNewAccessToken = async (refreshToken: string) => {
+  const accessToken = await createNewAccessTokenWithRefreshToken(refreshToken);
+  return { accessToken };
 };
 
 export const authServices = {
   credentialLogin,
+  getNewAccessToken,
 };

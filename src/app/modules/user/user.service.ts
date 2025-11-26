@@ -14,7 +14,7 @@ const createUser = async (payload: Partial<IUser>) => {
   }
   rest.password = await bcryptjs.hash(rest.password as string, 10);
   const authProvider: IAuthProvider = {
-    provider: "credential",
+    provider: "credentials",
     providerId: email as string,
   };
 
