@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import express from "express";
-
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
 import { notFound } from "./app/middlewares/notFound";
@@ -9,7 +9,7 @@ import router from "./app/routes/index";
 const app = express();
 app.use(express.json());
 app.use(cors());
-
+app.use(cookieParser());
 // User Apis
 
 app.use("/api/v1", router);

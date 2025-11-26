@@ -1,8 +1,10 @@
 import AppErr from "../../errorhelpers/AppError";
 import { User } from "./user.model";
-import { IAuthProvider, IUser } from "./usre.interface";
-import httpstatus from "http-status-codes";
+import { IAuthProvider, IUser, Role } from "./usre.interface";
+import httpstatus, { StatusCodes } from "http-status-codes";
 import bcryptjs from "bcryptjs";
+import { JwtPayload } from "jsonwebtoken";
+import { envVars } from "../../config/env";
 const createUser = async (payload: Partial<IUser>) => {
   const { email, ...rest } = payload;
 
@@ -12,7 +14,7 @@ const createUser = async (payload: Partial<IUser>) => {
   }
   rest.password = await bcryptjs.hash(rest.password as string, 10);
   const authProvider: IAuthProvider = {
-    provider: "credential",
+    provider: "credentials",
     providerId: email as string,
   };
 
@@ -25,7 +27,7 @@ const createUser = async (payload: Partial<IUser>) => {
 };
 
 const getAllUser = async () => {
-  const users = await User.find();
+  const users = await User.find().select("-password");
   const userCount = await User.countDocuments();
   return {
     data: users,
@@ -33,7 +35,36 @@ const getAllUser = async () => {
   };
 };
 
+const updateUser = async (
+  userId: string,
+  payload: Partial<IUser>,
+  decodedToken: JwtPayload
+) => {
+  const isUserExist = await User.findById(userId);
+
+  if (!isUserExist) {
+    throw new AppErr(StatusCodes.NOT_FOUND, "User not found");
+  }
+
+  if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
+    throw new AppErr(StatusCodes.FORBIDDEN, "You are not authorized");
+  }
+
+  if (payload.password) {
+    payload.password = await bcryptjs.hash(
+      payload.password,
+      Number(envVars.BCRYPT_SALT_ROUND)
+    );
+  }
+
+  const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
+    new: true,
+  });
+  return newUpdatedUser;
+};
+
 export const userService = {
   createUser,
   getAllUser,
+  updateUser,
 };

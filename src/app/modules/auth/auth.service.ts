@@ -3,6 +3,10 @@ import { User } from "../user/user.model";
 import { IUser } from "../user/usre.interface";
 import httpstatus from "http-status-codes";
 import bcryptjs from "bcryptjs";
+import {
+  createNewAccessTokenWithRefreshToken,
+  createUserTokens,
+} from "../../utils/userTokens";
 
 const credentialLogin = async (paylod: Partial<IUser>) => {
   const { email, password } = paylod;
@@ -21,12 +25,21 @@ const credentialLogin = async (paylod: Partial<IUser>) => {
   if (!isPasswrdMatch) {
     throw new AppErr(httpstatus.UNAUTHORIZED, "Invalid Password");
   }
-
+  const { accessToken, refreshToken } = createUserTokens(existingUser);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password: pass, ...rest } = existingUser.toObject();
   return {
-    email: existingUser.email,
+    accessToken,
+    refreshToken,
+    user: rest,
   };
+};
+const getNewAccessToken = async (refreshToken: string) => {
+  const accessToken = await createNewAccessTokenWithRefreshToken(refreshToken);
+  return { accessToken };
 };
 
 export const authServices = {
   credentialLogin,
+  getNewAccessToken,
 };
