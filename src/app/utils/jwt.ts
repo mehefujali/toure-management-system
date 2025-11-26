@@ -12,6 +12,7 @@ export const genarateToken = (
 };
 
 export const verifyToken = (token: string, secret: string) => {
-  const isVerifyed = jwt.verify(token, secret);
-  return isVerifyed;
+  const verifiedToken = jwt.verify(token, secret);
+
+  return verifiedToken;
 };

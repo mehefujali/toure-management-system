@@ -22,6 +22,7 @@ const startServer = async () => {
     console.log(error);
   }
 };
+
 (async () => {
   await startServer();
   await seedSuperAdmin();
