@@ -5,9 +5,48 @@ import {
   Profile,
   VerifyCallback,
 } from "passport-google-oauth20";
+
+import { Strategy as LocalStrategy } from "passport-local";
 import { envVars } from "./env";
 import { User } from "../modules/user/user.model";
 import { Role } from "../modules/user/usre.interface";
+import bcryptjs from "bcryptjs";
+
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+    },
+    async (email: string, password: string, done) => {
+      try {
+        const user = await User.findOne({ email });
+        if (!user) {
+          return done("User dos not exist");
+        }
+        const isGoogleAuthenticated = user.auths?.some(
+          (providerObject) => providerObject.provider === "google"
+        );
+        if (isGoogleAuthenticated) {
+          return done(null, false, {
+            message:
+              "You signed up using Google authentication, so you cannot log in with credentials. If you want to log in using email and password, please set a password first.",
+          });
+        }
+        const isPasswrdMatch = await bcryptjs.compare(
+          password,
+          user.password as string
+        );
+        if (!isPasswrdMatch) {
+          return done("Password dose not match");
+        }
+        return done(null, user);
+      } catch (error) {
+        done(error);
+      }
+    }
+  )
+);
 
 passport.use(
   new GoogleStrategy(

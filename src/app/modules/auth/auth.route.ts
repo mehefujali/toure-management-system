@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 import { authControllers } from "./auth.controller";
 import { checkAuth } from "../../middlewares/checkAuth";
 import { Role } from "../user/usre.interface";
@@ -17,10 +17,14 @@ router.post(
   checkAuth(...Object.values(Role)),
   authControllers.changePassword
 );
-router.get(
-  "/google",
-  passport.authenticate("google", { scope: ["email", "profile"] })
-);
+router.get("/google", (req: Request, res: Response, next: NextFunction) => {
+  const redirect = (req.query.redirect as string) || "/";
+
+  passport.authenticate("google", {
+    scope: ["email", "profile"],
+    state: redirect,
+  })(req, res, next);
+});
 
 router.get(
   "/google/callback",

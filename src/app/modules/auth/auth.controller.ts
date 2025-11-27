@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import catchAsync from "../../utils/catchAsync";
 import { StatusCodes } from "http-status-codes";
 import sendResponse from "../../utils/sendResponse";
@@ -7,24 +7,48 @@ import { JwtPayload } from "jsonwebtoken";
 import { createUserTokens } from "../../utils/userTokens";
 import AppErr from "../../errorhelpers/AppError";
 import { envVars } from "../../config/env";
+import passport from "passport";
 
-const credentialLogin = catchAsync(async (req: Request, res: Response) => {
-  const loginInfo = await authServices.credentialLogin(req.body);
-  res.cookie("refreshToken", loginInfo.refreshToken, {
-    httpOnly: true,
-    secure: false,
-  });
-  res.cookie("accessToken", loginInfo.accessToken, {
-    httpOnly: true,
-    secure: false,
-  });
-  sendResponse(res, {
-    success: true,
-    statusCode: StatusCodes.OK,
-    message: "User login successfully",
-    data: loginInfo,
-  });
-});
+// login --------
+const credentialLogin = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate(
+      "local",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+      async (err: any, user: any, info: any) => {
+        if (err) {
+          return next(new AppErr(StatusCodes.BAD_REQUEST, err));
+        }
+        if (!user) {
+          return next(err);
+        }
+        const userTokens = createUserTokens(user);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password, ...rest } = user.toObject();
+        res.cookie("refreshToken", userTokens.refreshToken, {
+          httpOnly: true,
+          secure: false,
+        });
+        res.cookie("accessToken", userTokens.accessToken, {
+          httpOnly: true,
+          secure: false,
+        });
+        sendResponse(res, {
+          success: true,
+          statusCode: StatusCodes.OK,
+          message: "User login successfully",
+          data: {
+            accessToken: userTokens.accessToken,
+            refreshToken: userTokens.refreshToken,
+            user: rest,
+          },
+        });
+      }
+    )(req, res, next);
+  }
+);
+
+//get new access token
 const getNewAccessToken = catchAsync(async (req: Request, res: Response) => {
   const refreshToken = req.cookies.refreshToken as string;
   const tokenInfo = await authServices.getNewAccessToken(refreshToken);
@@ -83,7 +107,14 @@ const googleCallback = catchAsync(async (req: Request, res: Response) => {
     httpOnly: true,
     secure: false,
   });
-  res.redirect(envVars.FRONTEND_URL);
+
+  let state = req.query.state as string;
+
+  if (!state.startsWith("/")) {
+    state = "/" + state;
+  }
+
+  res.redirect(`${envVars.FRONTEND_URL}${state}`);
 });
 
 export const authControllers = {
