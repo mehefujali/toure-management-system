@@ -1,15 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { userService } from "./user.service";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 
-import { envVars } from "../../config/env";
-import { verifyToken } from "../../utils/jwt";
 import { JwtPayload } from "jsonwebtoken";
 
 const createUser = catchAsync(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
     const { name, email, ...rest } = req.body;
     const user = await userService.createUser({ name, email, ...rest });
@@ -21,8 +19,10 @@ const createUser = catchAsync(
   }
 );
 const updateUser = catchAsync(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const token = req.headers.authorization as string;
     const varifyedToken = req.user;
     const user = await userService.updateUser(
@@ -40,6 +40,7 @@ const updateUser = catchAsync(
 );
 
 const getAllUser = catchAsync(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async (req: Request, res: Response, next: NextFunction) => {
     const users = await userService.getAllUser();
     sendResponse(res, {

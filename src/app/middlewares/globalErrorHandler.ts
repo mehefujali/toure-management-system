@@ -10,7 +10,7 @@ export const globalErrorHandler = (
   next: NextFunction
 ) => {
   let statusCode = 500;
-  let message = err.massage;
+  let message = err.message;
 
   if (err instanceof AppErr) {
     statusCode = err.statusCode;

@@ -4,6 +4,7 @@ import { envVars } from "../config/env";
 
 import { User } from "../modules/user/user.model";
 import { IAuthProvider, IUser, Role } from "../modules/user/usre.interface";
+import chalk from "chalk";
 
 export const seedSuperAdmin = async () => {
   try {
@@ -12,7 +13,6 @@ export const seedSuperAdmin = async () => {
     });
 
     if (isSuperAdminExist) {
-      console.log("Super Admin Already Exists!");
       return;
     }
 
@@ -38,7 +38,7 @@ export const seedSuperAdmin = async () => {
     };
 
     const superadmin = await User.create(payload);
-    console.log("Super Admin Created Successfuly! \n");
+    console.log(chalk.blue("Super Admin Created Successfuly! \n"));
     console.log(superadmin);
   } catch (error) {
     console.log(error);
